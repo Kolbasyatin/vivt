@@ -24,7 +24,7 @@ class ScheduleCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         $daysOfWeek = [
-            'пон' => 1,
+            'пн' => 1,
             'вт' => 2,
             'ср' => 3,
             'чт' => 4,
@@ -37,10 +37,8 @@ class ScheduleCrudController extends AbstractCrudController
             ChoiceField::new('dayOfWeek', 'День недели')->setChoices($daysOfWeek),
             TimeField::new('startTime', 'Время начала'),
             TimeField::new('endTime', 'Время окончания'),
-//            CollectionField::new('subject', 'Предмет')->hideWhenCreating()->hideWhenUpdating(),
-            AssociationField::new('subject', 'Предмет')->hideOnIndex(),
-
-            AssociationField::new('studentGroup'),
+            AssociationField::new('subject', 'Предмет'),
+            AssociationField::new('studentGroup', 'Группа'),
         ];
     }
 

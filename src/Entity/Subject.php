@@ -21,8 +21,9 @@ class Subject
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\ManyToMany(targetEntity: Schedule::class, mappedBy: 'subject')]
+    #[ORM\OneToMany(targetEntity: Schedule::class, mappedBy: 'subject')]
     private Collection $schedules;
+
 
     public function __construct()
     {
@@ -58,6 +59,11 @@ class Subject
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->name;
+    }
+
     /**
      * @return Collection<int, Schedule>
      */
@@ -70,7 +76,7 @@ class Subject
     {
         if (!$this->schedules->contains($schedule)) {
             $this->schedules->add($schedule);
-            $schedule->addSubject($this);
+            $schedule->setSubject($this);
         }
 
         return $this;
@@ -79,16 +85,12 @@ class Subject
     public function removeSchedule(Schedule $schedule): static
     {
         if ($this->schedules->removeElement($schedule)) {
-            $schedule->removeSubject($this);
+            // set the owning side to null (unless already changed)
+            if ($schedule->getSubject() === $this) {
+                $schedule->setSubject(null);
+            }
         }
 
         return $this;
     }
-
-    public function __toString(): string
-    {
-        return $this->name;
-    }
-
-
 }

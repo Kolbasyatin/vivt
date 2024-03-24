@@ -11,6 +11,15 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ScheduleRepository::class)]
 class Schedule
 {
+    public const dof = [
+        1 => 'пн',
+        2 => 'вт',
+        3 => 'ср',
+        4 => 'чт',
+        5 => 'пт',
+        6 => 'сб',
+        7 => 'вк',
+    ];
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -25,19 +34,21 @@ class Schedule
     #[ORM\Column(type: Types::TIME_IMMUTABLE)]
     private ?\DateTimeImmutable $endTime = null;
 
-    #[ORM\ManyToMany(targetEntity: StudentGroup::class, inversedBy: 'schedules')]
-    private Collection $studentGroup;
 
-    #[ORM\ManyToMany(targetEntity: Subject::class, inversedBy: 'schedules')]
-    private Collection $subject;
+    #[ORM\ManyToOne(inversedBy: 'schedules')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?StudentGroup $studentGroup = null;
 
-    #[ORM\ManyToMany(targetEntity: Attendance::class, mappedBy: 'schedule')]
+    #[ORM\ManyToOne(inversedBy: 'schedules')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Subject $subject = null;
+
+    #[ORM\OneToMany(targetEntity: Attendance::class, mappedBy: 'schedule')]
     private Collection $attendances;
+
 
     public function __construct()
     {
-        $this->studentGroup = new ArrayCollection();
-        $this->subject = new ArrayCollection();
         $this->attendances = new ArrayCollection();
     }
 
@@ -82,50 +93,28 @@ class Schedule
         return $this;
     }
 
-    /**
-     * @return Collection<int, StudentGroup>
-     */
-    public function getStudentGroup(): Collection
+
+
+    public function getStudentGroup(): ?StudentGroup
     {
         return $this->studentGroup;
     }
 
-    public function addStudentGroup(StudentGroup $studentGroup): static
+    public function setStudentGroup(?StudentGroup $studentGroup): static
     {
-        if (!$this->studentGroup->contains($studentGroup)) {
-            $this->studentGroup->add($studentGroup);
-        }
+        $this->studentGroup = $studentGroup;
 
         return $this;
     }
 
-    public function removeStudentGroup(StudentGroup $studentGroup): static
-    {
-        $this->studentGroup->removeElement($studentGroup);
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Subject>
-     */
-    public function getSubject(): Collection
+    public function getSubject(): ?Subject
     {
         return $this->subject;
     }
 
-    public function addSubject(Subject $subject): static
+    public function setSubject(?Subject $subject): static
     {
-        if (!$this->subject->contains($subject)) {
-            $this->subject->add($subject);
-        }
-
-        return $this;
-    }
-
-    public function removeSubject(Subject $subject): static
-    {
-        $this->subject->removeElement($subject);
+        $this->subject = $subject;
 
         return $this;
     }
@@ -142,7 +131,7 @@ class Schedule
     {
         if (!$this->attendances->contains($attendance)) {
             $this->attendances->add($attendance);
-            $attendance->addSchedule($this);
+            $attendance->setSchedule($this);
         }
 
         return $this;
@@ -151,9 +140,19 @@ class Schedule
     public function removeAttendance(Attendance $attendance): static
     {
         if ($this->attendances->removeElement($attendance)) {
-            $attendance->removeSchedule($this);
+            // set the owning side to null (unless already changed)
+            if ($attendance->getSchedule() === $this) {
+                $attendance->setSchedule(null);
+            }
         }
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return self::dof[$this->dayOfWeek]. ' '.$this->subject->getName();
+    }
+
+
 }

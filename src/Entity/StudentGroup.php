@@ -24,11 +24,13 @@ class StudentGroup
     #[ORM\OneToMany(targetEntity: Student::class, mappedBy: 'studentGroup')]
     private Collection $students;
 
-    #[ORM\ManyToMany(targetEntity: Schedule::class, mappedBy: 'studentGroup')]
-    private Collection $schedules;
 
     #[ORM\ManyToOne(inversedBy: 'studentGroup')]
     private ?GroupStatistic $groupStatistic = null;
+
+    #[ORM\OneToMany(targetEntity: Schedule::class, mappedBy: 'studentGroup')]
+    private Collection $schedules;
+
 
     public function __construct()
     {
@@ -96,32 +98,6 @@ class StudentGroup
         return $this;
     }
 
-    /**
-     * @return Collection<int, Schedule>
-     */
-    public function getSchedules(): Collection
-    {
-        return $this->schedules;
-    }
-
-    public function addSchedule(Schedule $schedule): static
-    {
-        if (!$this->schedules->contains($schedule)) {
-            $this->schedules->add($schedule);
-            $schedule->addStudentGroup($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSchedule(Schedule $schedule): static
-    {
-        if ($this->schedules->removeElement($schedule)) {
-            $schedule->removeStudentGroup($this);
-        }
-
-        return $this;
-    }
 
     public function getGroupStatistic(): ?GroupStatistic
     {
@@ -139,4 +115,35 @@ class StudentGroup
     {
         return $this->groupName;
     }
+
+    /**
+     * @return Collection<int, Schedule>
+     */
+    public function getSchedules(): Collection
+    {
+        return $this->schedules;
+    }
+
+    public function addSchedule(Schedule $schedule): static
+    {
+        if (!$this->schedules->contains($schedule)) {
+            $this->schedules->add($schedule);
+            $schedule->setStudentGroup($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSchedule(Schedule $schedule): static
+    {
+        if ($this->schedules->removeElement($schedule)) {
+            // set the owning side to null (unless already changed)
+            if ($schedule->getStudentGroup() === $this) {
+                $schedule->setStudentGroup(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

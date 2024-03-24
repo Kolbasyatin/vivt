@@ -37,8 +37,9 @@ class Student
     #[ORM\OneToMany(targetEntity: Performance::class, mappedBy: 'student')]
     private Collection $performances;
 
-    #[ORM\OneToMany(targetEntity: Attendance::class, mappedBy: 'student')]
+    #[ORM\ManyToMany(targetEntity: Attendance::class, mappedBy: 'students')]
     private Collection $attendances;
+
 
     public function __construct()
     {
@@ -184,7 +185,7 @@ class Student
     {
         if (!$this->attendances->contains($attendance)) {
             $this->attendances->add($attendance);
-            $attendance->setStudent($this);
+            $attendance->addStudent($this);
         }
 
         return $this;
@@ -193,13 +194,16 @@ class Student
     public function removeAttendance(Attendance $attendance): static
     {
         if ($this->attendances->removeElement($attendance)) {
-            // set the owning side to null (unless already changed)
-            if ($attendance->getStudent() === $this) {
-                $attendance->setStudent(null);
-            }
+            $attendance->removeStudent($this);
         }
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->name;
+    }
+
 
 }

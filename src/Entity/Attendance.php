@@ -15,60 +15,24 @@ class Attendance
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'attendances')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Student $student = null;
-
-    #[ORM\ManyToMany(targetEntity: Schedule::class, inversedBy: 'attendances')]
-    private Collection $schedule;
 
     #[ORM\Column(nullable: true)]
     private ?bool $status = null;
 
+    #[ORM\ManyToOne(inversedBy: 'attendances')]
+    private ?Schedule $schedule = null;
+
+    #[ORM\ManyToMany(targetEntity: Student::class, inversedBy: 'attendances')]
+    private Collection $students;
+
     public function __construct()
     {
-        $this->schedule = new ArrayCollection();
+        $this->students = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getStudent(): ?Student
-    {
-        return $this->student;
-    }
-
-    public function setStudent(?Student $student): static
-    {
-        $this->student = $student;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Schedule>
-     */
-    public function getSchedule(): Collection
-    {
-        return $this->schedule;
-    }
-
-    public function addSchedule(Schedule $schedule): static
-    {
-        if (!$this->schedule->contains($schedule)) {
-            $this->schedule->add($schedule);
-        }
-
-        return $this;
-    }
-
-    public function removeSchedule(Schedule $schedule): static
-    {
-        $this->schedule->removeElement($schedule);
-
-        return $this;
     }
 
     public function isStatus(): ?bool
@@ -79,6 +43,42 @@ class Attendance
     public function setStatus(?bool $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getSchedule(): ?Schedule
+    {
+        return $this->schedule;
+    }
+
+    public function setSchedule(?Schedule $schedule): static
+    {
+        $this->schedule = $schedule;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Student>
+     */
+    public function getStudents(): Collection
+    {
+        return $this->students;
+    }
+
+    public function addStudent(Student $student): static
+    {
+        if (!$this->students->contains($student)) {
+            $this->students->add($student);
+        }
+
+        return $this;
+    }
+
+    public function removeStudent(Student $student): static
+    {
+        $this->students->removeElement($student);
 
         return $this;
     }
